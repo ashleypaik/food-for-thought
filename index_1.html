@@ -1,0 +1,913 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Food for Thought</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Figtree:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: a phone-sized app frame centred on a sage stage; facilitator panel docks to its right on wide screens. */
+:root{
+  --stage:#E4E9E0; --bg:#F4F6F1; --surface:#FFFFFF; --ink:#1C2923; --muted:#5A6A61; --line:#DBE2D7; --track:#ECF0E8; --bar:#9AA79F;
+  --accent:#7A2E58; --accent-ink:#FFFFFF; --accent-soft:#F4E4ED;
+  --good:#2D6A48; --good-soft:#E0EFE5; --warn:#9C4320; --warn-soft:#F8E6DD; --sun-soft:#FBF1D4;
+  --g-fruit:#C8423A; --g-veg:#3E8A4F; --g-grain:#D9932B; --g-protein:#6B4C9A; --g-dairy:#3A78B5;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body:"Figtree", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --stage:#0B100D; --bg:#131A16; --surface:#1B2420; --ink:#E7EEE9; --muted:#9BAAA1; --line:#2D3832; --track:#242E29; --bar:#66746C;
+  --accent:#E79BC1; --accent-ink:#2A0F1E; --accent-soft:#3A2331;
+  --good:#86CDA2; --good-soft:#1E3328; --warn:#F09A72; --warn-soft:#3C251B; --sun-soft:#363020;
+  --g-fruit:#E7746B; --g-veg:#6CC07F; --g-grain:#EBB45C; --g-protein:#A98BD6; --g-dairy:#74A9DE;
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --stage:#0B100D; --bg:#131A16; --surface:#1B2420; --ink:#E7EEE9; --muted:#9BAAA1; --line:#2D3832; --track:#242E29; --bar:#66746C;
+  --accent:#E79BC1; --accent-ink:#2A0F1E; --accent-soft:#3A2331;
+  --good:#86CDA2; --good-soft:#1E3328; --warn:#F09A72; --warn-soft:#3C251B; --sun-soft:#363020;
+  --g-fruit:#E7746B; --g-veg:#6CC07F; --g-grain:#EBB45C; --g-protein:#A98BD6; --g-dairy:#74A9DE;
+  color-scheme:dark}
+
+html,body{height:100%}
+body{background:var(--stage);color:var(--ink);font:15px/1.5 var(--body);}
+*{box-sizing:border-box}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+h1,h2,h3{font-family:var(--display);text-wrap:balance;margin:0;line-height:1.15}
+p{margin:0}
+
+.stage{height:100%;display:flex;justify-content:center;align-items:center;gap:24px;padding-block:24px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.phone{position:relative;width:100%;max-width:400px;height:min(860px,100%);background:var(--bg);border:1px solid var(--line);
+  border-radius:28px;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 20px 50px -30px rgba(20,40,30,.5)}
+@media (max-width:520px){
+  .stage{padding:0}
+  .phone{max-width:none;height:100%;border:0;border-radius:0;box-shadow:none}
+}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 20px 10px;border-bottom:1px solid var(--line);background:var(--bg)}
+.brand{font-family:var(--display);font-weight:700;font-size:17px;display:flex;align-items:center;gap:8px}
+.scroll{flex:1;overflow-y:auto;min-height:0}
+.pad{padding:20px;display:flex;flex-direction:column;gap:24px}
+.tabbar{display:flex;border-top:1px solid var(--line);background:var(--surface)}
+.tabbar button{flex:1;border:0;background:none;padding:10px 0 12px;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:12px;color:var(--muted)}
+.tabbar button[aria-current="page"]{color:var(--accent);font-weight:600}
+.tabbar svg{width:22px;height:22px}
+
+.eyebrow{font-size:11.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.muted{color:var(--muted)}
+.small{font-size:13px}
+.btn{border:0;border-radius:999px;padding:12px 20px;font-weight:600;background:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.btn.block{width:100%}
+.btn.ghost{background:transparent;color:var(--ink);border:1px solid var(--line)}
+.btn.sm{padding:8px 14px;font-size:13.5px}
+.link{border:0;background:none;padding:0;color:var(--accent);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+
+/* Welcome */
+.hero{display:flex;flex-direction:column;gap:14px;padding-top:12px}
+.hero h1{font-size:34px;font-weight:700;letter-spacing:-.01em}
+.hero p{font-size:16px;color:var(--muted);max-width:32ch}
+.howto{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:none}
+.howto li{display:flex;gap:12px;align-items:flex-start}
+.howto .n{flex:none;width:26px;height:26px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font:500 13px var(--mono);display:grid;place-items:center}
+
+/* Form */
+fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+legend{font-family:var(--display);font-weight:700;font-size:18px;padding:0;margin-bottom:2px}
+.hint{font-size:13px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:8px 14px;font-size:14px;display:inline-flex;align-items:center;gap:7px}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+.chip:disabled{opacity:.45;cursor:not-allowed}
+textarea{width:100%;min-height:110px;resize:vertical;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:12px;line-height:1.45}
+.error{color:var(--warn);font-size:13px;font-weight:600}
+.note{background:var(--sun-soft);border-radius:14px;padding:12px 14px;font-size:13px}
+.stickyfoot{position:sticky;bottom:0;background:linear-gradient(to top,var(--bg) 70%,transparent);padding:16px 20px 20px;margin-top:-8px}
+
+/* Loading */
+.loading{height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:32px;text-align:center}
+.loading svg.big{width:120px;height:96px}
+.loading svg.big path,.loading svg.big circle{animation:fill 2.4s ease-in-out infinite}
+.loading svg.big .q2{animation-delay:.4s}.loading svg.big .q3{animation-delay:.8s}.loading svg.big .q4{animation-delay:1.2s}.loading svg.big .q5{animation-delay:1.6s}
+@keyframes fill{0%,100%{opacity:.25}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.loading svg.big *{animation:none!important}}
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--muted)}
+.steps li.on{color:var(--ink);font-weight:600}
+
+/* Today */
+.planhead{display:flex;flex-direction:column;gap:8px}
+.planhead h1{font-size:26px}
+.metarow{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;font-size:12px;font-weight:600;background:var(--good-soft);color:var(--good)}
+.pill.alt{background:var(--sun-soft);color:var(--ink)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.plain{background:var(--track);color:var(--muted)}
+.progress{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;max-width:180px}
+.progress i{height:6px;border-radius:3px;background:var(--track)}
+.progress i.on{background:var(--good)}
+.section{display:flex;flex-direction:column;gap:12px}
+.section>h2{font-size:18px}
+.dot{flex:none;width:8px;height:8px;border-radius:50%;background:var(--accent)}
+.foods{display:flex;flex-wrap:wrap;gap:6px}
+.food{background:var(--good-soft);color:var(--good);border-radius:8px;padding:3px 9px;font-size:13px;font-weight:500}
+
+.slot{display:flex;flex-direction:column;gap:8px}
+.slothead{display:flex;align-items:center;gap:10px}
+.slothead .eyebrow{color:var(--ink)}
+.slothead::after{content:"";flex:1;height:1px;background:var(--line)}
+.meal{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.meal[data-status="kept"]{border-color:var(--good)}
+.meal .mtop{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.meal .mtop>div{min-width:0}
+.meal h3{font-size:18px;font-weight:700}
+.why{font-size:14.5px;color:var(--muted)}
+.mfoot{display:flex;align-items:center;gap:8px}
+.act{border:1px solid var(--line);background:var(--bg);border-radius:999px;padding:7px 13px;font-size:13.5px;font-weight:600;display:inline-flex;align-items:center;gap:6px}
+.act svg{width:15px;height:15px;flex:none}
+.act.keep[aria-pressed="true"]{background:var(--good);border-color:var(--good);color:var(--surface)}
+.act:disabled{opacity:.5;cursor:not-allowed}
+.mfoot .link{margin-left:auto;font-size:13.5px}
+.keptnote{font-size:12px;color:var(--good);font-weight:600}
+.removed{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;flex-wrap:wrap}
+.plate{width:36px;height:28px;flex:none}
+.safe{display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--good);font-weight:600}
+.safe svg{width:14px;height:14px;flex:none}
+.disclaim{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);padding-top:14px}
+
+/* Nutrition chart */
+.chart{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.chart.flat{border:0;padding:0;background:none}
+.crow{display:grid;grid-template-columns:96px 1fr;gap:4px 12px;align-items:center}
+.crow .cl{font-size:13.5px;font-weight:600;display:flex;flex-direction:column;line-height:1.2}
+.crow .cl em{font-style:normal;font-size:11px;color:var(--accent);font-weight:600}
+.cbar{position:relative;height:10px;border-radius:5px;background:var(--track)}
+.cbar span{position:absolute;left:0;top:0;bottom:0;border-radius:5px;background:var(--bar)}
+.crow.goal .cbar span{background:var(--accent)}
+.cv{grid-column:2;font:500 12px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums;display:flex;justify-content:space-between;gap:8px}
+.cv b{color:var(--ink);font-weight:500}
+.cnote{font-size:12px;color:var(--muted)}
+
+/* Week */
+.weeknav{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.iconbtn{border:1px solid var(--line);background:var(--surface);border-radius:50%;width:36px;height:36px;display:grid;place-items:center}
+.iconbtn svg{width:18px;height:18px}
+.days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.day{border:1px solid transparent;background:none;border-radius:14px;padding:8px 0 9px;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0}
+.day .wd{font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.day .dn{font:700 17px var(--display)}
+.day .ind{height:14px;display:flex;align-items:center;font:500 10.5px var(--mono);color:var(--good)}
+.day .ind i{width:7px;height:7px;border-radius:50%;background:var(--accent)}
+.day[data-today="true"] .dn{color:var(--accent)}
+.day[aria-pressed="true"]{background:var(--surface);border-color:var(--line)}
+.dayplan{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.rows{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.rows li{border-bottom:1px solid var(--line)}
+.rows li:last-child{border-bottom:0}
+.rows button{width:100%;border:0;background:none;text-align:left;display:grid;grid-template-columns:72px 1fr auto;gap:10px;align-items:center;padding:10px 0;font-size:14.5px}
+.rows .sl{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.rows .st{font-size:12px;font-weight:600;color:var(--good)}
+.rows .st.off{color:var(--muted);font-weight:500}
+.rows .nm{min-width:0}
+.rows .nm.gone{text-decoration:line-through;color:var(--muted)}
+.history{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.history button{width:100%;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:14px;padding:12px 14px;display:grid;grid-template-columns:52px 1fr auto;gap:12px;align-items:center}
+.history .hd{display:flex;flex-direction:column;align-items:center;line-height:1.1}
+.history .hd b{font:700 20px var(--display)}
+.history .hd span{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:600}
+.history .hs{min-width:0;font-size:14px}
+.history .hk{font:500 12px var(--mono);color:var(--good)}
+.empty{background:var(--surface);border:1px dashed var(--line);border-radius:16px;padding:18px;text-align:center;display:flex;flex-direction:column;gap:10px;align-items:center}
+
+/* Sheet */
+.backdrop{position:absolute;inset:0;background:rgba(10,20,15,.45);z-index:20;display:flex;align-items:flex-end}
+.sheet{width:100%;max-height:88%;overflow-y:auto;background:var(--surface);border-radius:22px 22px 0 0;padding:10px 20px calc(24px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:18px}
+.grab{width:40px;height:4px;border-radius:4px;background:var(--line);margin:4px auto 0}
+.sheet h2{font-size:22px}
+.sheet h3{font-size:15px}
+.sheet .acts{display:flex;flex-wrap:wrap;gap:8px}
+.ing{margin:0;padding:0;list-style:none;display:flex;flex-wrap:wrap;gap:6px}
+.ing li{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:4px 10px;font-size:14px}
+.legend{display:flex;flex-wrap:wrap;gap:10px;font-size:13px}
+.legend span{display:inline-flex;align-items:center;gap:5px}
+.legend i{width:9px;height:9px;border-radius:50%;display:inline-block}
+.reasons{display:flex;flex-direction:column;gap:8px;background:var(--bg);border-radius:14px;padding:12px}
+
+/* Profile */
+.kv{display:flex;flex-direction:column;gap:2px;padding:12px 0;border-bottom:1px solid var(--line)}
+.kv:last-child{border-bottom:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:4px 16px}
+
+/* Facilitator */
+.panel{width:340px;height:min(860px,100%);background:var(--surface);border:1px solid var(--line);border-radius:20px;display:flex;flex-direction:column;overflow:hidden}
+.panel header{padding:16px 18px 12px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:10px}
+.panel header h2{font-size:16px}
+.panel .pbody{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:18px;min-height:0}
+.panel input{width:100%;border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:8px 10px}
+.tasks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.tasks li{display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:start;font-size:14px}
+.tasks .box{width:18px;height:18px;border-radius:5px;border:1.5px solid var(--line);margin-top:2px;display:grid;place-items:center}
+.tasks li.done .box{background:var(--good);border-color:var(--good);color:var(--surface)}
+.tasks .time{font:500 12px var(--mono);color:var(--muted);font-variant-numeric:tabular-nums}
+.log{list-style:none;margin:0;padding:0;font:12px/1.45 var(--mono);display:flex;flex-direction:column;gap:6px}
+.log li{display:grid;grid-template-columns:44px 1fr;gap:8px;min-width:0}
+.log li span:last-child{overflow-wrap:anywhere}
+.prow{display:flex;gap:8px;flex-wrap:wrap}
+.prow .btn{padding:9px 14px;font-size:13px}
+.closepanel{display:none}
+@media (max-width:959px){
+  .panel{display:none}
+  .panel.open{display:flex;position:fixed;inset:0;width:auto;height:auto;border-radius:0;z-index:50;
+    padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+  .closepanel{display:inline-flex}
+}
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <div class="phone" id="phone">
+    <div class="topbar"><div class="brand" id="brand"></div><div id="topright"></div></div>
+    <div class="scroll" id="scroll"></div>
+    <nav class="tabbar" id="tabbar" hidden></nav>
+    <div id="sheetHost"></div>
+  </div>
+  <aside class="panel" id="panel" aria-label="Facilitator tools"></aside>
+</div>
+
+<script>
+/* ---------- Data ---------- */
+const GOALS = [
+  ["protein","Eat more protein"],["iron","Get enough iron"],["fiber","More fiber"],
+  ["calcium","Strong bones (calcium)"],["b12","Get enough B12"],["veg","Eat more vegetables"],["energy","Steadier energy"]
+];
+const PATTERNS = [["omnivore","I eat everything"],["pescatarian","Pescatarian"],["vegetarian","Vegetarian"],["vegan","Vegan"]];
+const RESTRICTIONS = [["gluten","Gluten-free"],["dairy","Dairy-free"],["nuts","Nut allergy"],["soy","Soy-free"],["egg","Egg-free"],["shellfish","Shellfish allergy"]];
+const label = (list,k)=> (list.find(x=>x[0]===k)||[k,k])[1];
+const SLOTS = ["Breakfast","Lunch","Dinner","Snack"];
+const EXAMPLE_DIET = "Yesterday: bagel with butter and coffee for breakfast, a cheese quesadilla from the dining hall for lunch, chips in the afternoon, pasta with marinara for dinner. I skip vegetables most days.";
+
+/* Nutrients charted for every plan. Daily values are the FDA's general adult references. */
+const NUTS = [
+  {k:"protein",label:"Protein",unit:"g",dv:50},
+  {k:"fiber",label:"Fiber",unit:"g",dv:28},
+  {k:"iron",label:"Iron",unit:"mg",dv:18},
+  {k:"calcium",label:"Calcium",unit:"mg",dv:1300},
+  {k:"b12",label:"Vitamin B12",unit:"mcg",dv:2.4}
+];
+const fmtN=(v,u)=> (u==="mcg"||v<10&&u==="mg"? (Math.round(v*10)/10) : Math.round(v)) + " " + u;
+
+/* Restriction checker: every suggestion's ingredients are screened before it is shown. */
+const T = a => a.map(t=>new RegExp("\\b"+t+"(?:s|es)?\\b","i"));
+const RULES = {
+  meat:{label:"No meat", terms:T(["chicken","beef","pork","turkey","lamb","bacon","ham","sausage","steak","veal","duck","prosciutto","salami","pepperoni","chorizo","gelatin","bone broth"]), clean:s=>s.replace(/(plant-based|vegan|meatless|veggie|beyond|impossible)\s+\w+/gi,"")},
+  fish:{label:"No fish", terms:T(["fish","salmon","tuna","cod","tilapia","sardine","anchov(?:y|ie)","trout","halibut","mackerel","shrimp","prawn","crab","lobster","scallop","clam","mussel","oyster"])},
+  animal:{label:"Vegan", terms:T(["egg","honey","milk","cheese","yogh?urt","butter","cream","whey","casein","ghee","kefir","ricotta","mozzarella","parmesan","feta","paneer","mayo(?:nnaise)?"]), clean:s=>cleanDairy(s)},
+  dairy:{label:"Dairy-free", terms:T(["milk","cheese","yogh?urt","butter","cream","whey","casein","ghee","kefir","ricotta","mozzarella","parmesan","feta","paneer"]), clean:s=>cleanDairy(s)},
+  gluten:{label:"Gluten-free", terms:T(["wheat","barley","rye","bread","pasta","couscous","seitan","farro","bulgur","spelt","semolina","flour","tortilla","soy sauce","oat","cracker","granola","muesli","pita","naan","bagel","toast","noodle","cereal","bun","croissant"]),
+    clean:s=>s.replace(/gluten[- ]free\s+[\w-]+(\s+[\w-]+)?/gi,"").replace(/(almond|rice|chickpea|coconut|corn|cassava|tapioca)\s+(flour|noodle|tortilla|cracker)s?/gi,"")},
+  nuts:{label:"Nut allergy", terms:T(["almond","cashew","walnut","pecan","pistachio","hazelnut","macadamia","brazil nut","pine nut","peanut","nut","praline","marzipan","nutella"]), clean:s=>s.replace(/nut-free|nutritional yeast|butternut|coconut|nutmeg|water chestnut/gi,"")},
+  soy:{label:"Soy-free", terms:T(["soy","soya","tofu","tempeh","edamame","miso","tamari","natto"]), clean:s=>s.replace(/soy-free/gi,"")},
+  egg:{label:"Egg-free", terms:T(["egg","mayo(?:nnaise)?","meringue","aioli"]), clean:s=>s.replace(/(egg-free|vegan)\s+\w+/gi,"")},
+  shellfish:{label:"Shellfish allergy", terms:T(["shrimp","prawn","crab","lobster","scallop","clam","mussel","oyster","crawfish"])}
+};
+function cleanDairy(s){
+  return s.replace(/(almond|oat|soy|coconut|rice|cashew|pea|hemp|plant|flax|dairy-free|vegan)[- ]?(milk|yogh?urt|cheese|cream|butter)s?/gi,"")
+          .replace(/(peanut|nut|seed|sunflower|almond|cashew|apple|cocoa|shea|sesame)\s+butter/gi,"")
+          .replace(/butter\s?(bean|nut|lettuce)s?/gi,"").replace(/nutritional yeast|coconut cream/gi,"");
+}
+function activeRules(p){
+  const r=[];
+  if(p.pattern==="vegan") r.push("meat","fish","animal");
+  if(p.pattern==="vegetarian") r.push("meat","fish");
+  if(p.pattern==="pescatarian") r.push("meat");
+  p.restrictions.forEach(x=>{ if(!r.includes(x)) r.push(x) });
+  return r;
+}
+function violations(text,p){
+  const out=[];
+  for(const k of activeRules(p)){
+    const R=RULES[k]; const s=R.clean?R.clean(text):text;
+    if(R.terms.some(re=>re.test(s))) out.push(R.label);
+  }
+  return out;
+}
+function mealViolations(m,p){
+  const v=[];
+  [m.name,...(m.ingredients||[])].forEach(t=>{ const x=violations(String(t),p); if(x.length) v.push({item:t,rules:x}); });
+  return v;
+}
+
+/* Built-in food library — used when AI is unavailable, and to backfill anything the safety check removes.
+   n = estimated per serving: protein g, fiber g, iron mg, calcium mg, B12 mcg */
+const LIB = [
+ {slot:"Breakfast",name:"Tofu scramble with spinach and toast",ing:["firm tofu (calcium-set)","spinach","nutritional yeast","turmeric","olive oil","whole-grain toast","orange slices"],plate:["veg","grain","protein","fruit"],n:[20,7,4,350,2.0],why:{protein:"About 20 g of protein before noon, a strong start on your protein goal.",iron:"Tofu and spinach bring iron, and the orange helps you absorb it.",calcium:"Calcium-set tofu gives about a quarter of a day's calcium without dairy.",b12:"Fortified nutritional yeast adds B12, which is hard to get on a plant-based diet."},gen:"A warm, filling breakfast that covers four food groups."},
+ {slot:"Breakfast",name:"Overnight oats with soy milk, chia and berries",ing:["gluten-free rolled oats","fortified soy milk","chia seeds","blueberries","cinnamon"],plate:["grain","fruit","dairy"],n:[14,11,3,330,1.3],why:{fiber:"Oats, chia and berries give about 11 g of fiber, over a third of a day's goal.",calcium:"Fortified soy milk matches dairy milk for calcium.",b12:"Fortified soy milk is one of the easiest B12 sources without animal foods.",energy:"Slow-digesting oats and chia keep energy steady through morning classes."},gen:"Make it the night before and grab it on the way out."},
+ {slot:"Breakfast",name:"Greek yogurt bowl with berries and walnuts",ing:["plain Greek yogurt","raspberries","walnuts","honey"],plate:["dairy","fruit","protein"],n:[20,6,1,250,1.3],why:{protein:"Greek yogurt gives about 20 g of protein in one bowl.",calcium:"A cup of yogurt covers about a fifth of your daily calcium.",fiber:"Raspberries are one of the highest-fiber fruits."},gen:"Quick, no cooking, and covers dairy and fruit."},
+ {slot:"Breakfast",name:"Veggie omelet with whole-grain toast",ing:["2 eggs","bell pepper","spinach","olive oil","whole-grain toast"],plate:["protein","veg","grain"],n:[16,4,2.5,90,1.1],why:{protein:"Two eggs give about 12 g of protein, and the toast adds more.",b12:"Eggs bring almost half a day's B12.",veg:"Folding in peppers and spinach adds a vegetable serving at breakfast."},gen:"Gets vegetables onto your plate first thing."},
+ {slot:"Breakfast",name:"Sweet potato and black bean hash",ing:["diced sweet potato","black beans","bell pepper","onion","olive oil","smoked paprika","salsa"],plate:["veg","protein"],n:[12,11,3.5,80,0],why:{fiber:"Sweet potato and black beans give about 11 g of fiber to start the day.",iron:"Black beans add iron, and peppers and salsa help you absorb it.",protein:"Black beans give about 12 g of plant protein.",veg:"Two vegetables before noon puts you ahead on MyPlate's half-plate goal.",energy:"Beans and sweet potato release energy slowly through the morning."},gen:"A savory breakfast that skips grains entirely."},
+ {slot:"Lunch",name:"Lentil and quinoa bowl with roasted vegetables",ing:["green lentils","quinoa","roasted sweet potato","roasted broccoli","tahini","lemon juice"],plate:["protein","grain","veg"],n:[22,14,6,90,0],why:{protein:"Lentils and quinoa together give about 22 g of plant protein.",iron:"Lentils are one of the richest plant sources of iron, and lemon helps absorption.",fiber:"About 14 g of fiber, half of a day's goal.",veg:"Half the bowl is vegetables, matching MyPlate's half-plate guide."},gen:"Batch-cook the lentils and quinoa to reuse all week."},
+ {slot:"Lunch",name:"Black bean and sweet potato burrito bowl",ing:["black beans","brown rice","roasted sweet potato","salsa","romaine","avocado","lime"],plate:["protein","grain","veg"],n:[15,15,4,110,0],why:{fiber:"Beans, brown rice and sweet potato add up to about 15 g of fiber.",iron:"Black beans add iron, and salsa and lime help you absorb it.",veg:"Sweet potato, salsa and greens fill half the bowl.",energy:"Beans and brown rice digest slowly, so no 3 pm crash."},gen:"Familiar flavors with whole grains instead of white rice."},
+ {slot:"Lunch",name:"Grilled chicken salad with quinoa",ing:["grilled chicken breast","quinoa","mixed greens","cherry tomatoes","cucumber","olive oil and lemon dressing"],plate:["protein","grain","veg"],n:[35,6,3,70,0.4],why:{protein:"About 35 g of lean protein, a big step toward your protein goal.",veg:"Greens, tomatoes and cucumber make up half the plate."},gen:"Light but filling, with lean protein and whole grains."},
+ {slot:"Lunch",name:"Tuna and white bean salad",ing:["canned tuna","cannellini beans","red onion","parsley","olive oil","lemon juice","mixed greens"],plate:["protein","veg"],n:[30,8,3.5,90,2.5],why:{protein:"Tuna and beans together give about 30 g of protein.",b12:"Tuna covers a full day's B12.",fiber:"White beans add about 8 g of fiber."},gen:"No cooking needed, ready in five minutes."},
+ {slot:"Dinner",name:"Tempeh stir-fry with broccoli and brown rice",ing:["tempeh","broccoli","bell pepper","garlic","ginger","tamari","brown rice"],plate:["protein","veg","grain"],n:[24,8,4,200,0.1],why:{protein:"Tempeh gives about 20 g of protein per serving.",iron:"Tempeh and broccoli both add iron, and peppers help you absorb it.",calcium:"Broccoli and tempeh add calcium without dairy.",veg:"Two vegetables fill half the plate."},gen:"A quick weeknight dinner with whole grains."},
+ {slot:"Dinner",name:"Red lentil dal with spinach and rice",ing:["red lentils","spinach","onion","garlic","ginger","cumin","turmeric","canned tomatoes","basmati rice"],plate:["protein","veg","grain"],n:[18,12,6,110,0],why:{iron:"Lentils and spinach make this one of the most iron-rich plant meals.",protein:"About 18 g of protein from lentils alone.",fiber:"About 12 g of fiber from lentils and tomatoes.",energy:"Lentils release energy slowly through the evening."},gen:"One pot, freezes well, cheap to make."},
+ {slot:"Dinner",name:"Baked salmon with roasted vegetables",ing:["salmon fillet","baby potatoes","green beans","olive oil","lemon","dill"],plate:["protein","veg","grain"],n:[30,6,2,50,4.8],why:{protein:"A salmon fillet gives about 30 g of protein.",b12:"Salmon gives about two days' worth of B12.",veg:"Green beans and potatoes fill most of the plate."},gen:"The Dietary Guidelines suggest seafood twice a week; this counts as one."},
+ {slot:"Dinner",name:"Turkey and bean chili",ing:["lean ground turkey","kidney beans","black beans","canned tomatoes","onion","bell pepper","chili powder"],plate:["protein","veg"],n:[32,12,5,100,1.2],why:{protein:"Turkey and two kinds of beans give about 32 g of protein.",iron:"Beans and turkey both add iron.",fiber:"Two kinds of beans add about 12 g of fiber."},gen:"Makes leftovers for tomorrow's lunch."},
+ {slot:"Dinner",name:"Chickpea and vegetable curry with rice",ing:["chickpeas","cauliflower","spinach","light coconut milk","curry powder","onion","garlic","brown rice"],plate:["protein","veg","grain"],n:[15,13,5,120,0],why:{fiber:"Chickpeas and cauliflower give about 13 g of fiber.",iron:"Chickpeas and spinach both bring iron.",veg:"Two vegetables plus chickpeas fill most of the bowl.",protein:"Chickpeas give about 15 g of protein."},gen:"Mild, creamy and fully plant-based."},
+ {slot:"Snack",name:"Roasted chickpeas and an orange",ing:["roasted chickpeas","olive oil","paprika","orange"],plate:["protein","fruit"],n:[7,8,2,80,0],why:{fiber:"Chickpeas and an orange give about 8 g of fiber.",iron:"The orange helps you absorb the iron in chickpeas.",protein:"A crunchy snack with about 7 g of protein."},gen:"A crunchy swap for chips."},
+ {slot:"Snack",name:"Hummus with carrots and bell pepper",ing:["hummus","carrot sticks","red bell pepper strips"],plate:["veg","protein"],n:[5,6,1.5,50,0],why:{veg:"A full cup of raw vegetables in one snack.",fiber:"About 6 g of fiber.",iron:"Red pepper helps you absorb iron from the chickpeas."},gen:"Easy to pack for class."},
+ {slot:"Snack",name:"Pumpkin seeds and an apple",ing:["pumpkin seeds","apple"],plate:["protein","fruit"],n:[8,5,2.5,20,0],why:{iron:"A small handful of pumpkin seeds gives about 15% of a day's iron.",fiber:"The apple adds about 4 g of fiber.",protein:"About 8 g of protein from seeds."},gen:"Seeds, not nuts, so safe for most nut allergies."},
+ {slot:"Snack",name:"Edamame with sea salt",ing:["shelled edamame","sea salt"],plate:["protein","veg"],n:[11,5,2,100,0],why:{protein:"A cup of edamame gives about 11 g of protein.",fiber:"About 5 g of fiber.",calcium:"Edamame adds some plant calcium."},gen:"Microwave from frozen in two minutes."},
+ {slot:"Snack",name:"Cottage cheese with pineapple",ing:["low-fat cottage cheese","pineapple chunks"],plate:["dairy","fruit"],n:[14,1,0.2,120,0.8],why:{protein:"Half a cup of cottage cheese gives about 14 g of protein.",calcium:"Adds calcium toward your bone goal.",b12:"Dairy adds some B12."},gen:"Sweet and high in protein."}
+];
+
+const GAPS = {
+  protein:{name:"Protein",why:"Your recent meals look light on protein foods like beans, tofu, eggs or fish.",foods:["lentils","tofu","Greek yogurt","eggs","chicken","chickpeas"]},
+  iron:{name:"Iron",why:"Plant iron is absorbed less easily. Pair beans and greens with vitamin C, like citrus or peppers.",foods:["lentils","spinach","pumpkin seeds","tofu","lean beef","fortified cereal"]},
+  fiber:{name:"Fiber",why:"Most adults get about half the fiber they need. Beans, whole grains and fruit close the gap.",foods:["black beans","oats","raspberries","chia seeds","brown rice"]},
+  calcium:{name:"Calcium",why:"Calcium supports bones. Dairy, fortified plant milks, calcium-set tofu and leafy greens all count.",foods:["fortified soy milk","calcium-set tofu","yogurt","kale","broccoli"]},
+  b12:{name:"Vitamin B12",why:"B12 comes almost only from animal foods, so plant-based eaters need fortified foods or a supplement.",foods:["fortified soy milk","nutritional yeast","fortified cereal","eggs","salmon"]},
+  veg:{name:"Vegetables",why:"MyPlate suggests filling half your plate with fruits and vegetables. Your recent meals had few.",foods:["spinach","broccoli","bell peppers","carrots","sweet potato"]},
+  energy:{name:"Whole grains",why:"Swapping refined carbs for whole grains and adding protein can keep energy steadier.",foods:["oats","brown rice","quinoa","whole-grain bread"]}
+};
+
+/* ---------- Dates ---------- */
+const pad2=n=>String(n).padStart(2,"0");
+const keyOf=d=>`${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+const fromKey=k=>{ const [y,m,d]=k.split("-").map(Number); return new Date(y,m-1,d); };
+const todayKey=()=>keyOf(new Date());
+const addDays=(k,n)=>{ const d=fromKey(k); d.setDate(d.getDate()+n); return keyOf(d); };
+const weekStart=k=>{ const d=fromKey(k); const wd=(d.getDay()+6)%7; d.setDate(d.getDate()-wd); return keyOf(d); };
+const fmtDay=(k,opts={weekday:"long",month:"short",day:"numeric"})=>fromKey(k).toLocaleDateString("en-US",opts);
+const dayName=k=> k===todayKey()?"today":fmtDay(k,{weekday:"long"});
+
+/* ---------- State ---------- */
+const KEY="fft-proto-v2";
+let S={profile:null,plans:{},log:[],session:{participant:"",start:null},screen:"welcome",tab:"today",selDate:null,weekOff:0};
+try{ const raw=localStorage.getItem(KEY); if(raw){ Object.assign(S,JSON.parse(raw)); } }catch(e){}
+if(!S.profile) S.screen="welcome"; else if(S.screen==="loading"||S.screen==="setup") S.screen="app";
+if(!S.selDate) S.selDate=todayKey();
+function save(){ try{ localStorage.setItem(KEY,JSON.stringify({profile:S.profile,plans:S.plans,log:S.log,session:S.session,screen:S.screen==="loading"?"app":S.screen,tab:S.tab,selDate:S.selDate,weekOff:S.weekOff})); }catch(e){} }
+function logEvent(type,detail=""){
+  const t=Date.now(); if(!S.session.start) S.session.start=t;
+  S.log.push({t,type,detail}); save(); renderPanel();
+}
+const uid=()=>Math.random().toString(36).slice(2,9);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const todayPlan=()=>S.plans[todayKey()]||null;
+function findMeal(id){ for(const k in S.plans){ const m=S.plans[k].meals.find(x=>x.id===id); if(m) return {plan:S.plans[k],meal:m,date:k}; } return null; }
+const editable=date=>date>=todayKey();
+
+let samplePromise = (window.claude && window.claude.use) ? window.claude.use("sample").catch(()=>null) : Promise.resolve(null);
+let aiOff=false;
+const PERM_CODES=["not_granted","sampling_disabled","not_declared","capability_disabled","capability_removed"];
+
+/* ---------- Icons ---------- */
+const I={
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  swap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h13l-3-3M20 16H7l3 3"/></svg>',
+  x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  left:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>',
+  right:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg>',
+  shield:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l8 3v6c0 4.5-3.4 8-8 9-4.6-1-8-4.5-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-4.5" stroke-linecap="round"/></svg>',
+  plan:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="8.5"/><path d="M12 3.5V12h8.5"/></svg>',
+  cal:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',
+  user:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8.5" r="3.8"/><path d="M4.5 20c1.2-4 4-5.5 7.5-5.5s6.3 1.5 7.5 5.5" stroke-linecap="round"/></svg>'
+};
+const GROUPNAMES={fruit:"Fruit",veg:"Vegetables",grain:"Grains",protein:"Protein",dairy:"Dairy"};
+function plate(groups,cls="plate"){
+  const f=g=>groups.includes(g)?`var(--g-${g})`:"var(--line)";
+  return `<svg class="${cls}" viewBox="0 0 36 28" role="img" aria-label="Food groups: ${groups.map(g=>GROUPNAMES[g]).join(", ")||"none"}">
+  <g stroke="var(--surface)" stroke-width="1.4">
+  <path class="q1" d="M14 14 L14 2 A12 12 0 0 0 2 14 Z" fill="${f("fruit")}"/>
+  <path class="q2" d="M14 14 L26 14 A12 12 0 0 0 14 2 Z" fill="${f("grain")}"/>
+  <path class="q3" d="M14 14 L14 26 A12 12 0 0 0 26 14 Z" fill="${f("protein")}"/>
+  <path class="q4" d="M14 14 L2 14 A12 12 0 0 0 14 26 Z" fill="${f("veg")}"/>
+  <circle class="q5" cx="31" cy="6" r="3.6" fill="${f("dairy")}"/></g></svg>`;
+}
+
+/* ---------- Nutrition chart ---------- */
+function nutChart(meals,{title="How the day adds up",flat=false}={}){
+  const live=meals.filter(m=>m.status!=="rejected"&&m.nut);
+  if(!live.length) return "";
+  const goals=S.profile?.goals||[];
+  const rows=NUTS.map(n=>{
+    const parts=live.map(m=>({slot:m.slot,v:+m.nut[n.k]||0}));
+    const total=parts.reduce((a,b)=>a+b.v,0);
+    return {...n,total,pct:Math.round(total/n.dv*100),parts,goal:goals.includes(n.k)};
+  }).sort((a,b)=>(b.goal-a.goal));
+  return `<div class="chart${flat?" flat":""}" role="group" aria-label="${esc(title)}">
+    ${title?`<div><h3 style="font-size:16px">${esc(title)}</h3><p class="cnote">Share of a general daily value from ${live.length===1?"this meal":`${live.length} meals`}${goals.length?". Your goals are highlighted":""}.</p></div>`:""}
+    ${rows.map(r=>{
+      const tip=r.parts.filter(p=>p.v).map(p=>`${p.slot}: ${fmtN(p.v,r.unit)}`).join(", ")||"None in these meals";
+      return `<div class="crow${r.goal?" goal":""}" title="${esc(r.label+" — "+tip)}">
+        <span class="cl">${r.label}${r.goal?"<em>Your goal</em>":""}</span>
+        <span class="cbar" role="img" aria-label="${esc(`${r.label}: ${fmtN(r.total,r.unit)}, ${r.pct}% of daily value. ${tip}`)}"><span style="width:${Math.min(100,r.pct)}%"></span></span>
+        <span class="cv"><b>${fmtN(r.total,r.unit)}</b><span>${r.pct>=100?"✓ ":""}${r.pct}%</span></span>
+      </div>`; }).join("")}
+    <p class="cnote">Estimates. Daily values are general references for adults; your needs may differ.</p>
+  </div>`;
+}
+
+/* ---------- Rendering shell ---------- */
+const $=id=>document.getElementById(id);
+function render(){
+  $("brand").innerHTML=`${plate(["fruit","veg","grain","protein"])}<span>Food for Thought</span>`;
+  $("topright").innerHTML="";
+  const tb=$("tabbar"); tb.hidden = S.screen!=="app";
+  const tabs=[["today",I.plan,"Today"],["week",I.cal,"Week"],["profile",I.user,"Profile"]];
+  tb.innerHTML=tabs.map(([k,ic,l])=>`<button id="tab-${k}" data-tab="${k}" aria-current="${S.tab===k?"page":"false"}">${ic}${l}</button>`).join("");
+  tb.querySelectorAll("button").forEach(b=>b.onclick=()=>{ S.tab=b.dataset.tab; if(S.tab==="week") logEvent("week_opened"); save(); render(); $("scroll").scrollTop=0; });
+  const sc=$("scroll");
+  if(S.screen==="welcome") sc.innerHTML=welcomeView();
+  else if(S.screen==="setup") sc.innerHTML=setupView();
+  else if(S.screen==="loading") sc.innerHTML=loadingView();
+  else sc.innerHTML = S.tab==="profile"?profileView(): S.tab==="week"?weekView():todayView();
+  bind();
+  renderPanel();
+}
+
+/* ---------- Welcome ---------- */
+function welcomeView(){
+  return `<div class="pad">
+  <div class="hero">
+    <span class="eyebrow">Personal food guidance</span>
+    <h1>Find what your meals are missing.</h1>
+    <p>Tell us your goals and how you eat. We'll suggest meals that fit, each with a short reason why.</p>
+  </div>
+  <ol class="howto">
+    <li><span class="n">1</span><span>Set your goals, eating pattern and restrictions.</span></li>
+    <li><span class="n">2</span><span>Describe what you usually eat.</span></li>
+    <li><span class="n">3</span><span>Get a day of meals. Keep, swap or skip any of them.</span></li>
+  </ol>
+  <div class="meal" aria-label="Example suggestion">
+    <div class="mtop"><div><span class="eyebrow">Example · Lunch</span><h3>Lentil and quinoa bowl</h3></div>${plate(["protein","grain","veg"])}</div>
+    <p class="why">Lentils are one of the richest plant sources of iron, and lemon helps absorption.</p>
+  </div>
+  <button class="btn block" id="start">Create my profile</button>
+  <p class="disclaim">Suggestions follow the Dietary Guidelines for Americans and MyPlate. They are not medical advice. Talk to a doctor or dietitian about health conditions.</p>
+  </div>`;
+}
+
+/* ---------- Setup form ---------- */
+let draft=null;
+function setupView(){
+  if(!draft) draft = S.profile ? JSON.parse(JSON.stringify(S.profile)) : {goals:[],pattern:"",restrictions:[],diet:""};
+  const max=draft.goals.length>=3;
+  return `<form id="setup" novalidate>
+  <div class="pad">
+    <div class="planhead"><span class="eyebrow">${S.profile?"Edit profile":"Your profile"}</span><h1>About you</h1><p class="muted">Takes about a minute. You can change this later.</p></div>
+    <fieldset><legend>Your goals</legend><span class="hint">Pick up to 3.</span>
+      <div class="chips">${GOALS.map(([k,l])=>`<button type="button" class="chip" id="goal-${k}" data-goal="${k}" aria-pressed="${draft.goals.includes(k)}" ${max&&!draft.goals.includes(k)?"disabled":""}>${l}</button>`).join("")}</div>
+      <span class="error" id="err-goals" hidden>Pick at least one goal.</span></fieldset>
+    <fieldset><legend>How you eat</legend>
+      <div class="chips" role="radiogroup">${PATTERNS.map(([k,l])=>`<button type="button" class="chip" role="radio" id="pat-${k}" data-pat="${k}" aria-pressed="${draft.pattern===k}" aria-checked="${draft.pattern===k}">${l}</button>`).join("")}</div>
+      <span class="error" id="err-pat" hidden>Choose how you eat.</span></fieldset>
+    <fieldset><legend>Restrictions or allergies</legend><span class="hint">We check every suggestion against these. Skip if none.</span>
+      <div class="chips">${RESTRICTIONS.map(([k,l])=>`<button type="button" class="chip" id="res-${k}" data-res="${k}" aria-pressed="${draft.restrictions.includes(k)}">${l}</button>`).join("")}</div></fieldset>
+    <fieldset><legend><label for="diet">What do you usually eat?</label></legend>
+      <span class="hint">Describe yesterday's meals or a typical day. Plain words are fine.</span>
+      <textarea id="diet" placeholder="e.g. cereal for breakfast, a sandwich at lunch, pasta for dinner…">${esc(draft.diet)}</textarea>
+      <span class="error" id="err-diet" hidden>Add a few things you ate so suggestions fit your real diet.</span>
+      <button type="button" class="link small" style="align-self:flex-start" id="example">Use an example</button></fieldset>
+    <p class="note">Food for Thought gives general suggestions based on public dietary guidelines. It does not replace advice from a doctor or registered dietitian.</p>
+  </div>
+  <div class="stickyfoot"><button class="btn block" type="submit" id="buildplan">${S.profile?"Save and update today's plan":"Build my plan"}</button></div>
+  </form>`;
+}
+
+/* ---------- Loading ---------- */
+let genCtl=null, loadStep=0, loadTimer=null, loadDate=null;
+function loadingView(){
+  const st=["Reading your profile","Finding what may be missing","Matching meals to the guidelines","Checking your restrictions"];
+  return `<div class="loading">
+    <svg class="big" viewBox="0 0 36 28">${plate(["fruit","veg","grain","protein","dairy"],"").replace(/^<svg[^>]*>|<\/svg>$/g,"")}</svg>
+    <div><h2 style="font-size:22px">Building your plan for ${esc(dayName(loadDate||todayKey()))}</h2><p class="muted small">This can take up to a minute.</p></div>
+    <ul class="steps">${st.map((s,i)=>`<li class="${i<=loadStep?"on":""}">${i<loadStep?"✓ ":""}${s}</li>`).join("")}</ul>
+    <button class="btn ghost" id="cancelgen">Cancel</button></div>`;
+}
+
+/* ---------- Today ---------- */
+function todayView(){
+  const p=todayPlan(), k=todayKey();
+  if(!p) return `<div class="pad"><div class="planhead"><span class="eyebrow">${fmtDay(k)}</span><h1>No plan for today yet</h1></div>
+    <div class="empty"><p class="muted">Build a day of meals based on your profile.</p><button class="btn" id="build-${k}" data-build="${k}">Build today's plan</button></div></div>`;
+  const kept=p.meals.filter(m=>m.status==="kept").length;
+  return `<div class="pad">
+    <div class="planhead">
+      <span class="eyebrow">${fmtDay(k)}</span>
+      <h1>${esc(p.summary)}</h1>
+      <div class="metarow">
+        <div class="progress" aria-hidden="true">${p.meals.map(m=>`<i class="${m.status==="kept"?"on":""}"></i>`).join("")}</div>
+        <span class="small muted" id="keptcount">${kept} of ${p.meals.length} meals kept</span>
+      </div>
+      ${(p.source!=="ai"||p.removed)?`<div class="metarow">${p.source!=="ai"?`<span class="pill alt">Built-in suggestions</span>`:""}${p.removed?`<span class="pill warn">${p.removed} unsafe suggestion${p.removed>1?"s":""} replaced</span>`:""}</div>`:""}
+    </div>
+
+    <section class="section" aria-labelledby="gaps-h">
+      <h2 id="gaps-h">May be missing</h2>
+      <div class="chips">${p.gaps.map((g,i)=>`<button class="chip" id="gap-${i}" data-gap="${i}"><span class="dot"></span>${esc(g.name)}</button>`).join("")}</div>
+    </section>
+
+    ${SLOTS.map(slot=>{ const ms=p.meals.filter(m=>m.slot===slot); if(!ms.length) return "";
+      return `<section class="slot" aria-label="${slot}"><div class="slothead"><span class="eyebrow">${slot}</span></div>${ms.map(m=>mealCard(m,k)).join("")}</section>`; }).join("")}
+
+    ${nutChart(p.meals)}
+
+    <p class="disclaim">Based on the Dietary Guidelines for Americans and MyPlate. Not medical advice.</p>
+  </div>`;
+}
+let busy={};
+function mealCard(m,date){
+  if(busy[m.id]) return `<article class="meal"><p class="muted">Finding another ${esc(m.slot.toLowerCase())}…</p></article>`;
+  if(m.status==="rejected") return `<article class="meal"><div class="removed"><span class="muted">Removed: ${esc(m.name)}</span>
+    <span class="prow"><button class="btn sm" id="another-${m.id}" data-another="${m.id}">Find another</button><button class="link small" data-undo="${m.id}" id="undo-${m.id}">Undo</button></span></div></article>`;
+  const kept=m.status==="kept";
+  return `<article class="meal" data-status="${m.status}">
+    <div class="mtop"><div>${kept?`<span class="keptnote">✓ Kept for ${date===todayKey()?"today":fmtDay(date,{weekday:"long"})}</span>`:""}<h3>${esc(m.name)}</h3></div>${plate(m.plate||[])}</div>
+    <p class="why">${esc(m.reason)}</p>
+    <div class="mfoot">
+      <button class="act keep" id="keep-${m.id}" data-keep="${m.id}" aria-pressed="${kept}">${I.check}${kept?"Kept":"Keep"}</button>
+      <button class="act" id="swap-${m.id}" data-swap="${m.id}">${I.swap}Swap</button>
+      <button class="link" id="detail-${m.id}" data-detail="${m.id}">Details</button>
+    </div>
+  </article>`;
+}
+
+/* ---------- Sheets ---------- */
+let rejectOpen=false;
+function openSheet(html){
+  $("sheetHost").innerHTML=`<div class="backdrop" id="backdrop"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-h"><div class="grab"></div>${html}<button class="btn ghost block" id="closesheet">Close</button></div></div>`;
+  $("backdrop").onclick=e=>{ if(e.target.id==="backdrop") closeSheet(); };
+  $("closesheet").onclick=closeSheet;
+}
+function closeSheet(){ $("sheetHost").innerHTML=""; rejectOpen=false; }
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeSheet(); });
+
+function openDetail(id,logIt=true){
+  const ctx=findMeal(id); if(!ctx) return;
+  const m=ctx.meal, ed=editable(ctx.date)&&m.status!=="rejected";
+  if(logIt) logEvent("detail_opened",m.name);
+  const rules=activeRules(S.profile).map(k=>RULES[k].label);
+  const kept=m.status==="kept";
+  openSheet(`
+    <div style="display:flex;justify-content:space-between;gap:12px"><div><span class="eyebrow">${esc(m.slot)} · ${esc(fmtDay(ctx.date,{weekday:"short",month:"short",day:"numeric"}))}</span><h2 id="sheet-h">${esc(m.name)}</h2></div>${plate(m.plate||[])}</div>
+    <p style="font-size:15px">${esc(m.reason)}</p>
+    ${ed?`<div class="acts">
+      <button class="act keep" id="s-keep" aria-pressed="${kept}">${I.check}${kept?"Kept":"Keep"}</button>
+      <button class="act" id="s-swap">${I.swap}Swap</button>
+      <button class="act" id="s-reject">${I.x}Not for me</button></div>
+      ${rejectOpen?`<div class="reasons"><span class="small" style="font-weight:600">What's not right?</span>
+        <div class="chips">${["I don't like it","Too much effort","Don't have the ingredients","Doesn't fit my diet"].map((r,i)=>`<button class="chip" id="why-${i}" data-reason="${esc(r)}">${r}</button>`).join("")}</div></div>`:""}`:""}
+    <div class="section"><h3>Ingredients</h3>
+      <ul class="ing">${(m.ingredients||[]).map(x=>`<li>${esc(x)}</li>`).join("")}</ul>
+      ${rules.length?`<div class="safe">${I.shield}Checked against: ${esc(rules.join(", "))}</div>`:""}</div>
+    ${m.nut?`<div class="section"><h3>Nutrients in this meal</h3>${nutChart([{...m,status:"suggested"}],{title:"",flat:true})}</div>`:""}
+    <div class="section"><h3>Food groups</h3>
+      <div class="legend">${["fruit","veg","grain","protein","dairy"].map(g=>`<span style="${(m.plate||[]).includes(g)?"":"opacity:.4"}"><i style="background:var(--g-${g})"></i>${GROUPNAMES[g]}</span>`).join("")}</div>
+      ${m.guideline?`<p class="small muted">${esc(m.guideline)}</p>`:""}</div>`);
+  if(!ed) return;
+  $("s-keep").onclick=()=>{ toggleKeep(id); openDetail(id,false); };
+  $("s-swap").onclick=()=>{ closeSheet(); swapMeal(id,""); };
+  $("s-reject").onclick=()=>{ rejectOpen=!rejectOpen; openDetail(id,false); };
+  document.querySelectorAll(".sheet [data-reason]").forEach(b=>b.onclick=()=>{
+    m.status="rejected"; m.rejectReason=b.dataset.reason; logEvent("meal_rejected",`${m.name} — ${m.rejectReason}`); save(); closeSheet(); keepScroll(render); });
+}
+function openGap(i){
+  const g=todayPlan().gaps[i]; logEvent("gap_opened",g.name);
+  openSheet(`<div><span class="eyebrow">May be missing</span><h2 id="sheet-h">${esc(g.name)}</h2></div>
+    <p style="font-size:15px">${esc(g.why)}</p>
+    <div class="section"><h3>Foods that help</h3><div class="foods">${g.foods.map(f=>`<span class="food">${esc(f)}</span>`).join("")}</div></div>`);
+}
+function toggleKeep(id){ const {meal:m,date}=findMeal(id); m.status=m.status==="kept"?"suggested":"kept"; logEvent(m.status==="kept"?"meal_kept":"meal_unkept",`${m.name} (${date})`); save(); keepScroll(render); }
+
+/* ---------- Week ---------- */
+let repeatArmed=false;
+function weekView(){
+  const tk=todayKey(), ws=addDays(weekStart(tk),S.weekOff*7);
+  const days=[...Array(7)].map((_,i)=>addDays(ws,i));
+  const sel=days.includes(S.selDate)?S.selDate:(days.includes(tk)?tk:days[0]);
+  S.selDate=sel;
+  const wkPlans=days.map(d=>S.plans[d]).filter(Boolean);
+  const wkKept=wkPlans.reduce((a,p)=>a+p.meals.filter(m=>m.status==="kept").length,0);
+  const range=`${fmtDay(days[0],{month:"short",day:"numeric"})} – ${fmtDay(days[6],fromKey(days[0]).getMonth()===fromKey(days[6]).getMonth()?{day:"numeric"}:{month:"short",day:"numeric"})}`;
+  const past=Object.keys(S.plans).filter(k=>k<tk).sort().reverse();
+  return `<div class="pad">
+    <div class="planhead"><span class="eyebrow">Your week</span>
+      <div class="weeknav"><h1>${range}</h1>
+        <span class="prow"><button class="iconbtn" id="wk-prev" aria-label="Previous week">${I.left}</button><button class="iconbtn" id="wk-next" aria-label="Next week">${I.right}</button></span></div>
+      <p class="small muted">${wkPlans.length?`${wkPlans.length} day${wkPlans.length>1?"s":""} planned · ${wkKept} meal${wkKept===1?"":"s"} kept`:"No plans this week yet."}${S.weekOff!==0?` · <button class="link small" id="wk-this">Back to this week</button>`:""}</p>
+    </div>
+    <div class="days" role="group" aria-label="Days of the week">${days.map(d=>{ const p=S.plans[d]; const kc=p?p.meals.filter(m=>m.status==="kept").length:0;
+      return `<button class="day" id="day-${d}" data-day="${d}" aria-pressed="${d===sel}" data-today="${d===tk}" aria-label="${esc(fmtDay(d))}${p?`, plan saved, ${kc} kept`:""}">
+        <span class="wd">${fmtDay(d,{weekday:"short"}).slice(0,3)}</span><span class="dn">${fromKey(d).getDate()}</span>
+        <span class="ind">${p?(kc?`${kc}✓`:"<i></i>"):""}</span></button>`; }).join("")}</div>
+    ${dayPanel(sel)}
+    <section class="section" aria-labelledby="hist-h"><h2 id="hist-h">Past plans</h2>
+      ${past.length?`<ul class="history">${past.slice(0,14).map(k=>{ const p=S.plans[k]; const kc=p.meals.filter(m=>m.status==="kept").length;
+        return `<li><button id="hist-${k}" data-hist="${k}"><span class="hd"><span>${fmtDay(k,{weekday:"short"})}</span><b>${fromKey(k).getDate()}</b></span>
+          <span class="hs">${esc(p.summary)}${p.example?` <span class="pill plain">Example</span>`:""}</span><span class="hk">${kc}/${p.meals.length} ✓</span></button></li>`; }).join("")}</ul>`
+      :`<div class="empty"><p class="muted small">Each day's plan is saved here so you can look back at what you planned and kept.</p></div>`}
+    </section>
+  </div>`;
+}
+function dayPanel(d){
+  const tk=todayKey(), p=S.plans[d], when=d===tk?"Today":d<tk?"Past":"Upcoming";
+  const head=`<div><span class="eyebrow">${when}${p?.example?" · Example":""}</span><h2 style="font-size:20px">${esc(fmtDay(d))}</h2></div>`;
+  if(!p) return `<div class="dayplan">${head}
+    ${d>=tk?`<p class="muted small">No plan yet for this day.</p><button class="btn" style="align-self:flex-start" id="build-${d}" data-build="${d}">Build a plan for ${esc(dayName(d))}</button>`
+      :`<p class="muted small">No plan was saved for this day.</p>`}</div>`;
+  return `<div class="dayplan">${head}
+    <p style="font-weight:600">${esc(p.summary)}</p>
+    <ul class="rows">${SLOTS.map(s=>{ const m=p.meals.find(x=>x.slot===s); if(!m) return "";
+      const st=m.status==="kept"?`<span class="st">✓ Kept</span>`:m.status==="rejected"?`<span class="st off">Removed</span>`:`<span class="st off">${d<tk?"Not kept":"Suggested"}</span>`;
+      return `<li><button id="row-${m.id}" data-row="${m.id}"><span class="sl">${s}</span><span class="nm${m.status==="rejected"?" gone":""}">${esc(m.name)}</span>${st}</button></li>`; }).join("")}</ul>
+    ${nutChart(p.meals,{title:"Nutrition for this day",flat:true})}
+    <div class="prow">
+      ${d===tk?`<button class="btn sm" id="goto-today">Open in Today</button>`:""}
+      ${d<tk?`<button class="btn sm" id="repeat-${d}" data-repeat="${d}">${repeatArmed&&todayPlan()?"Tap again to replace today's plan":"Use this plan today"}</button>`:""}
+      ${d>tk?`<button class="btn ghost sm" id="build-${d}" data-build="${d}">Build a new plan</button>`:""}
+    </div>
+  </div>`;
+}
+
+/* ---------- Profile ---------- */
+function profileView(){
+  const p=S.profile;
+  return `<div class="pad">
+    <div class="planhead"><span class="eyebrow">My profile</span><h1>What we know about you</h1></div>
+    <div class="card">
+      <div class="kv"><span class="eyebrow">Goals</span><span>${p.goals.map(g=>esc(label(GOALS,g))).join(", ")}</span></div>
+      <div class="kv"><span class="eyebrow">How you eat</span><span>${esc(label(PATTERNS,p.pattern))}</span></div>
+      <div class="kv"><span class="eyebrow">Restrictions</span><span>${p.restrictions.length?p.restrictions.map(r=>esc(label(RESTRICTIONS,r))).join(", "):"None"}</span></div>
+      <div class="kv"><span class="eyebrow">Usual meals</span><span class="small">${esc(p.diet)}</span></div>
+    </div>
+    <button class="btn block" id="editprofile">Edit profile</button>
+    <p class="disclaim">Your profile and plans stay on this device. <button class="link small" id="openpanel">Facilitator tools</button></p>
+  </div>`;
+}
+
+/* ---------- Binding ---------- */
+function bind(){
+  const on=(id,fn)=>{ const el=$(id); if(el) el.onclick=fn; };
+  const all=(sel,fn)=>document.querySelectorAll("#scroll "+sel).forEach(b=>b.onclick=()=>fn(b));
+  on("start",()=>{ logEvent("onboarding_started"); S.screen="setup"; draft=null; render(); });
+  on("editprofile",()=>{ S.screen="setup"; draft=null; render(); $("scroll").scrollTop=0; });
+  on("cancelgen",()=>{ genCtl?.abort(); });
+  on("openpanel",()=>{ $("panel").classList.add("open"); });
+  on("wk-prev",()=>{ S.weekOff--; S.selDate=null; save(); render(); });
+  on("wk-next",()=>{ S.weekOff++; S.selDate=null; save(); render(); });
+  on("wk-this",()=>{ S.weekOff=0; S.selDate=todayKey(); save(); render(); });
+  on("goto-today",()=>{ S.tab="today"; save(); render(); $("scroll").scrollTop=0; });
+  all("[data-build]",b=>generate(b.dataset.build));
+  all("[data-day]",b=>{ S.selDate=b.dataset.day; repeatArmed=false; logEvent(S.selDate<todayKey()&&S.plans[S.selDate]?"past_day_viewed":"day_viewed",S.selDate); keepScroll(render); });
+  all("[data-hist]",b=>{ const k=b.dataset.hist; S.selDate=k; S.weekOff=Math.round((fromKey(weekStart(k))-fromKey(weekStart(todayKey())))/(7*864e5)); repeatArmed=false; logEvent("past_day_viewed",k); render(); $("scroll").scrollTop=0; });
+  all("[data-row]",b=>openDetail(b.dataset.row));
+  all("[data-repeat]",b=>{
+    if(todayPlan()&&!repeatArmed){ repeatArmed=true; keepScroll(render); setTimeout(()=>{ if(repeatArmed){ repeatArmed=false; if(S.tab==="week") keepScroll(render);} },4000); return; }
+    repeatArmed=false; const src=S.plans[b.dataset.repeat];
+    S.plans[todayKey()]={...JSON.parse(JSON.stringify(src)),date:todayKey(),example:false,meals:src.meals.filter(m=>m.status!=="rejected").map(m=>({...m,id:uid(),status:"suggested"}))};
+    logEvent("plan_repeated",`${b.dataset.repeat} → today`); S.tab="today"; save(); render(); $("scroll").scrollTop=0; });
+  const f=$("setup");
+  if(f){
+    f.querySelectorAll("[data-goal]").forEach(b=>b.onclick=()=>{ const k=b.dataset.goal; draft.goals=draft.goals.includes(k)?draft.goals.filter(x=>x!==k):[...draft.goals,k].slice(0,3); keepScroll(render); });
+    f.querySelectorAll("[data-pat]").forEach(b=>b.onclick=()=>{ draft.pattern=b.dataset.pat; keepScroll(render); });
+    f.querySelectorAll("[data-res]").forEach(b=>b.onclick=()=>{ const k=b.dataset.res; draft.restrictions=draft.restrictions.includes(k)?draft.restrictions.filter(x=>x!==k):[...draft.restrictions,k]; keepScroll(render); });
+    $("diet").oninput=e=>draft.diet=e.target.value;
+    on("example",()=>{ draft.diet=EXAMPLE_DIET; $("diet").value=EXAMPLE_DIET; });
+    f.onsubmit=e=>{ e.preventDefault();
+      const eG=!draft.goals.length, eP=!draft.pattern, eD=draft.diet.trim().length<8;
+      $("err-goals").hidden=!eG; $("err-pat").hidden=!eP; $("err-diet").hidden=!eD;
+      if(eG||eP||eD){ logEvent("form_error",[eG&&"goals",eP&&"pattern",eD&&"diet"].filter(Boolean).join(",")); (eG?$("goal-protein"):eP?$("pat-omnivore"):$("diet")).focus(); return; }
+      const wasEdit=!!S.profile;
+      S.profile={...draft,diet:draft.diet.trim()}; draft=null;
+      logEvent(wasEdit?"profile_updated":"profile_saved",`${S.profile.pattern}; goals=${S.profile.goals.join("+")}; restr=${S.profile.restrictions.join("+")||"none"}`);
+      generate(todayKey());
+    };
+  }
+  all("[data-gap]",b=>openGap(+b.dataset.gap));
+  all("[data-detail]",b=>openDetail(b.dataset.detail));
+  all("[data-keep]",b=>toggleKeep(b.dataset.keep));
+  all("[data-swap]",b=>swapMeal(b.dataset.swap,""));
+  all("[data-undo]",b=>{ const {meal:m}=findMeal(b.dataset.undo); m.status="suggested"; logEvent("reject_undone",m.name); save(); keepScroll(render); });
+  all("[data-another]",b=>{ const {meal:m}=findMeal(b.dataset.another); swapMeal(m.id,m.rejectReason||""); });
+}
+function keepScroll(fn){ const sc=$("scroll"), y=sc.scrollTop; fn(); sc.scrollTop=y; }
+
+/* ---------- AI ---------- */
+function profileText(p){
+  return `Goals: ${p.goals.map(g=>label(GOALS,g)).join("; ")}
+Eating pattern: ${label(PATTERNS,p.pattern)}
+Restrictions/allergies: ${p.restrictions.length?p.restrictions.map(r=>label(RESTRICTIONS,r)).join("; "):"none"}
+What they usually eat (their words): """${p.diet.slice(0,1500)}"""`;
+}
+const GUIDE = `Ground every suggestion in the Dietary Guidelines for Americans and USDA MyPlate:
+- Half the plate fruits and vegetables; make at least half of grains whole grains; vary protein (beans, peas, lentils, soy, nuts/seeds, eggs, seafood, lean meat); include dairy or fortified soy alternatives for calcium.
+- Limit added sugars, sodium and saturated fat. Prefer simple, affordable foods a college student can make or find.
+- Plant-based eaters need reliable B12 (fortified foods or a supplement); pair plant iron with vitamin C.
+Hard safety rules:
+- NEVER include anything that breaks the user's eating pattern or restrictions, including hidden sources (milk or butter in bread, nut milks or nut butters for a nut allergy, soy sauce for gluten-free, fish sauce for vegetarians, honey for vegans).
+- List EVERY component in "ingredients" (milks, breads, sauces, oils, toppings) so the app can screen them. Say "gluten-free" explicitly on oats, bread or pasta for a gluten-free user.
+- Do not diagnose, give calorie targets, or mention medication.
+- "nutrients" are realistic per-serving estimates as plain numbers (no units, no text).
+Writing rules: plain everyday words, no jargon, no guilt. Each "reason" is one sentence under 18 words that ties the meal to one of THIS user's goals or gaps.`;
+const MEAL_SHAPE = `{"slot":"Breakfast|Lunch|Dinner|Snack","name":"short dish name, under 7 words","reason":"one sentence","ingredients":["..."],"nutrients":{"protein_g":20,"fiber_g":8,"iron_mg":3.5,"calcium_mg":250,"b12_mcg":1.2},"plate":["fruit","veg","grain","protein","dairy"],"guideline":"one short line naming the guideline this follows"}`;
+function nearbyNames(date){ const out=[]; for(let i=-3;i<=3;i++){ if(!i) continue; const p=S.plans[addDays(date,i)]; if(p) p.meals.forEach(m=>out.push(m.name)); } return out; }
+
+function planPrompt(p,date){
+  const avoid=nearbyNames(date);
+  return `You are the suggestion engine in "Food for Thought", a prototype app that helps a health-conscious person see what may be missing from their diet and suggests meals that fit their goals. Suggestions leave room for the user to decide; never tell them what they must not eat.
+
+USER PROFILE
+${profileText(p)}
+
+This plan is for ${fmtDay(date)}.${avoid.length?` For variety, avoid repeating these dishes from nearby days: ${avoid.join("; ")}.`:""}
+
+${GUIDE}
+
+TASK
+1. From their usual meals, goals and eating pattern, name up to 3 nutrients or food groups that may be missing (most important first). For each give "name" (1-2 words), "why" (1-2 plain sentences that refer to what they actually eat), and 4-5 "foods" that fit their restrictions.
+2. Suggest exactly 4 meals for one day: one each for Breakfast, Lunch, Dinner, Snack. Each meal targets at least one gap or goal.
+3. Write a "summary" headline under 9 words, addressed to the user (e.g. "More iron and protein, without meat").
+
+Reply with only JSON, in this shape:
+{"summary":"...","gaps":[{"name":"Iron","why":"...","foods":["..."]}],"meals":[${MEAL_SHAPE}]}`;
+}
+function swapPrompt(p,plan,m,reason){
+  const others=plan.meals.map(x=>x.name).concat(plan.rejected||[]).join("; ");
+  return `You are the suggestion engine in "Food for Thought". The user wants a different ${m.slot.toLowerCase()} than "${m.name}".${reason?` Their reason: "${reason}".`:""} Avoid these dishes already in the plan or rejected: ${others}.
+
+USER PROFILE
+${profileText(p)}
+Gaps the plan is addressing: ${plan.gaps.map(g=>g.name).join(", ")}
+
+${GUIDE}
+${reason==="Too much effort"?"Make it very quick: 10 minutes or less, few ingredients.":""}${reason==="Don't have the ingredients"?"Use common pantry or dining-hall foods.":""}
+
+Reply with only one JSON object for the new meal, in this shape:
+${MEAL_SHAPE}`;
+}
+const normSlot=s=>SLOTS.find(x=>x.toLowerCase()===String(s||"").toLowerCase().trim())||null;
+const num=v=>{ const n=parseFloat(v); return isFinite(n)&&n>=0?n:0; };
+function normMeal(m,source){
+  if(!m||!m.name||!Array.isArray(m.ingredients)) return null;
+  const slot=normSlot(m.slot); if(!slot) return null;
+  const n=m.nutrients||{};
+  return {id:uid(),slot,name:String(m.name).slice(0,80),reason:String(m.reason||"").slice(0,200),ingredients:m.ingredients.map(String).slice(0,14),
+    nut:{protein:num(n.protein_g),fiber:num(n.fiber_g),iron:num(n.iron_mg),calcium:num(n.calcium_mg),b12:num(n.b12_mcg)},
+    plate:Array.isArray(m.plate)?m.plate.map(String).filter(g=>GROUPNAMES[g]):[],
+    guideline:m.guideline?String(m.guideline).slice(0,160):"",status:"suggested",source};
+}
+
+/* ---------- Built-in generator ---------- */
+function libAllowed(p,exclude=[]){ return LIB.filter(it=>!exclude.includes(it.name) && !mealViolations({name:"",ingredients:it.ing},p).length); }
+function libMeal(it,p){
+  const g=p.goals.find(k=>it.why[k]) || Object.keys(it.why).find(k=>gapKeys(p).includes(k));
+  const [pr,fi,ir,ca,b]=it.n;
+  return {id:uid(),slot:it.slot,name:it.name,reason:g?it.why[g]:it.gen,ingredients:it.ing,nut:{protein:pr,fiber:fi,iron:ir,calcium:ca,b12:b},plate:it.plate,
+    guideline:"MyPlate: fill half your plate with fruits and vegetables, make half your grains whole.",status:"suggested",source:"library"};
+}
+function scoreLib(it,p){ const gk=gapKeys(p); return p.goals.filter(k=>it.why[k]).length*3 + gk.filter(k=>it.why[k]).length; }
+function pickLib(slot,p,exclude,soft=[]){
+  const c=libAllowed(p,exclude).filter(it=>it.slot===slot).sort((a,b)=>scoreLib(b,p)-scoreLib(a,p));
+  const fresh=c.filter(it=>!soft.includes(it.name));
+  const it=fresh[0]||c[0];
+  return it?libMeal(it,p):null;
+}
+function gapKeys(p){
+  const d=p.diet.toLowerCase(), k=[...p.goals];
+  const has=w=>w.some(x=>d.includes(x));
+  if(p.pattern==="vegan") k.push("b12","calcium","iron");
+  if(p.pattern==="vegetarian") k.push("iron","b12");
+  if(!has(["bean","lentil","tofu","tempeh","chickpea","chicken","beef","fish","salmon","tuna","egg","turkey","yogurt"])) k.push("protein");
+  if(!has(["salad","spinach","broccoli","vegetable","veggie","carrot","pepper","kale","greens"])||/skip vegetables|no vegetables/.test(d)) k.push("veg");
+  if(has(["white bread","bagel","chips","pasta","white rice","cereal","pastry","fries"])) k.push("fiber");
+  return [...new Set(k)];
+}
+function libraryPlan(p,date){
+  const keys=gapKeys(p).slice(0,3);
+  const gaps=keys.map(k=>{ const G=GAPS[k]; return {name:G.name,why:G.why,foods:G.foods.filter(f=>!violations(f,p).length).slice(0,5)}; });
+  const soft=nearbyNames(date), used=[], meals=[];
+  SLOTS.forEach(s=>{ const m=pickLib(s,p,used,soft); if(m){ meals.push(m); used.push(m.name);} });
+  const gl=keys.slice(0,2).map(k=>GAPS[k].name.toLowerCase());
+  return {date,summary:`More ${gl.join(" and ")} today`,gaps,meals,source:"library",removed:0,rejected:[]};
+}
+
+/* ---------- Generate & swap ---------- */
+async function generate(date){
+  loadDate=date; S.screen="loading"; loadStep=0; render();
+  clearInterval(loadTimer); loadTimer=setInterval(()=>{ if(loadStep<3){ loadStep++; if(S.screen==="loading") render(); } },3500);
+  const t0=Date.now(); const p=S.profile; let plan=null;
+  genCtl=new AbortController();
+  try{
+    const sample=aiOff?null:await samplePromise;
+    if(sample){
+      const d=await sample.json(planPrompt(p,date),{signal:genCtl.signal,modelTier:"default",effort:"low",cache:false});
+      if(!d||!Array.isArray(d.meals)) throw {code:"bad_shape"};
+      let removed=0; const meals=[], removedNames=[];
+      d.meals.map(m=>normMeal(m,"ai")).filter(Boolean).forEach(m=>{
+        const v=mealViolations(m,p);
+        if(v.length){ removed++; removedNames.push(m.name); logEvent("safety_removed",`${m.name}: "${v[0].item}" breaks ${v[0].rules.join(", ")}`); }
+        else if(!meals.find(x=>x.slot===m.slot)) meals.push(m);
+      });
+      SLOTS.forEach(s=>{ if(!meals.find(m=>m.slot===s)){ const f=pickLib(s,p,meals.map(m=>m.name),nearbyNames(date)); if(f) meals.push(f);} });
+      meals.sort((a,b)=>SLOTS.indexOf(a.slot)-SLOTS.indexOf(b.slot));
+      const gaps=(Array.isArray(d.gaps)?d.gaps:[]).filter(g=>g&&g.name).slice(0,3).map(g=>({name:String(g.name).slice(0,30),why:String(g.why||""),
+        foods:(Array.isArray(g.foods)?g.foods:[]).map(String).filter(f=>!violations(f,p).length).slice(0,5)}));
+      plan={date,summary:String(d.summary||"Your plan for the day").slice(0,80),gaps:gaps.length?gaps:libraryPlan(p,date).gaps,meals,source:"ai",removed,rejected:removedNames};
+    }
+  }catch(e){
+    if(e&&e.code==="cancelled"){ clearInterval(loadTimer); logEvent("generation_cancelled"); S.screen="app"; render(); return; }
+    if(e&&PERM_CODES.includes(e.code)) aiOff=true;
+    logEvent("ai_unavailable",e&&e.code?e.code:"error");
+  }
+  clearInterval(loadTimer);
+  if(!plan) plan=libraryPlan(p,date);
+  S.plans[date]=plan; S.screen="app";
+  if(date===todayKey()) S.tab="today"; else { S.tab="week"; S.selDate=date; }
+  logEvent("plan_generated",`${date} · ${plan.source} · ${((Date.now()-t0)/1000).toFixed(1)}s${plan.removed?` · ${plan.removed} removed by safety check`:""}`);
+  save(); render(); $("scroll").scrollTop=0;
+}
+async function swapMeal(id,reason){
+  const ctx=findMeal(id); if(!ctx||busy[id]) return;
+  const {plan,meal:m,date}=ctx;
+  busy[id]=true; keepScroll(render);
+  const p=S.profile; let nm=null;
+  plan.rejected=[...(plan.rejected||[]),m.name];
+  try{
+    const sample=aiOff?null:await samplePromise;
+    if(sample){
+      const d=await sample.json(swapPrompt(p,plan,m,reason),{modelTier:"quick",cache:false});
+      const c=normMeal({...d,slot:d?.slot||m.slot},"ai");
+      if(c){ const v=mealViolations(c,p); if(v.length){ plan.removed=(plan.removed||0)+1; logEvent("safety_removed",`${c.name}: "${v[0].item}" breaks ${v[0].rules.join(", ")}`);} else { c.slot=m.slot; nm=c; } }
+    }
+  }catch(e){ if(e&&PERM_CODES.includes(e.code)) aiOff=true; logEvent("ai_unavailable","swap: "+(e?.code||"error")); }
+  if(!nm) nm=pickLib(m.slot,p,[...plan.meals.map(x=>x.name),...plan.rejected],nearbyNames(date));
+  delete busy[id];
+  if(nm){ nm.id=id; const i=plan.meals.findIndex(x=>x.id===id); plan.meals[i]=nm; logEvent("meal_swapped",`${m.name} → ${nm.name}${reason?` (${reason})`:""}`); }
+  else { logEvent("swap_failed",m.name); m.status="suggested"; }
+  save(); keepScroll(render);
+}
+
+/* ---------- Facilitator panel ---------- */
+const TASKS=[
+  {label:"Create a profile with your own goals",ev:"profile_saved"},
+  {label:"Find one thing your diet may be missing",ev:"gap_opened"},
+  {label:"Review the ingredients of a suggested meal",ev:"detail_opened"},
+  {label:"Replace a meal you wouldn't eat",ev:"meal_swapped"},
+  {label:"Keep a meal for today",ev:"meal_kept"},
+  {label:"Look up a past day's plan in the week view",ev:"past_day_viewed"}
+];
+let resetArmed=false;
+const mmss=ms=>{ const s=Math.max(0,Math.round(ms/1000)); return `${Math.floor(s/60)}:${String(s%60).padStart(2,"0")}`; };
+function addExamples(){
+  if(!S.profile){ $("copymsg").textContent="Create a profile first, then add example days."; return; }
+  let n=0;
+  for(let i=3;i>=1;i--){ const k=addDays(todayKey(),-i); if(S.plans[k]) continue;
+    const pl=libraryPlan(S.profile,k); pl.example=true;
+    pl.meals.forEach((m,j)=>{ m.status=(j+i)%4===0?"suggested":"kept"; });
+    S.plans[k]=pl; n++; }
+  logEvent("examples_added",`${n} past day${n===1?"":"s"}`); render();
+}
+function renderPanel(){
+  const el=$("panel"); if(!el) return;
+  const st=S.session.start;
+  const wasOpen=el.classList.contains("open");
+  const pidFocused=document.activeElement&&document.activeElement.id==="pid";
+  el.innerHTML=`<header><h2>Test session</h2><button class="btn ghost closepanel" style="padding:6px 12px;font-size:13px" id="closepanel">Close</button></header>
+  <div class="pbody">
+    <div style="display:flex;flex-direction:column;gap:6px"><label class="eyebrow" for="pid">Participant ID</label><input id="pid" value="${esc(S.session.participant)}" placeholder="e.g. P3"></div>
+    <div style="display:flex;flex-direction:column;gap:8px"><span class="eyebrow">Tasks · time from first tap</span>
+      <ul class="tasks">${TASKS.map(t=>{ const e=S.log.find(x=>x.type===t.ev); return `<li class="${e?"done":""}"><span class="box">${e?I.check.replace('<svg','<svg width="12" height="12"'):""}</span><span>${t.label}</span><span class="time">${e&&st?mmss(e.t-st):"–"}</span></li>`; }).join("")}</ul></div>
+    <div style="display:flex;flex-direction:column;gap:8px"><span class="eyebrow">Event log (${S.log.length})</span>
+      <ul class="log">${S.log.slice().reverse().slice(0,60).map(e=>`<li><span class="muted">${st?mmss(e.t-st):""}</span><span><b>${esc(e.type)}</b>${e.detail?" · "+esc(e.detail):""}</span></li>`).join("")||'<li><span></span><span class="muted">Events appear as the participant uses the app.</span></li>'}</ul></div>
+    <div class="prow"><button class="btn" id="copylog">Copy log as CSV</button><button class="btn ghost" id="addex">Add 3 example past days</button><button class="btn ghost" id="resetsess">${resetArmed?"Tap again to erase":"Reset for next participant"}</button></div>
+    <p class="small muted" id="copymsg">Example days use the built-in meals and are labeled "Example" in the week view. The log stays in this browser only.</p>
+    <textarea id="csvbox" hidden readonly style="min-height:80px;font:12px var(--mono)"></textarea>
+  </div>`;
+  if(wasOpen) el.classList.add("open");
+  const pid=$("pid"); pid.oninput=e=>{ S.session.participant=e.target.value; save(); };
+  if(pidFocused){ pid.focus(); pid.setSelectionRange(pid.value.length,pid.value.length); }
+  $("closepanel").onclick=()=>el.classList.remove("open");
+  $("addex").onclick=addExamples;
+  $("copylog").onclick=()=>{
+    const rows=[["participant","elapsed","timestamp","event","detail"],...S.log.map(e=>[S.session.participant,st?mmss(e.t-st):"",new Date(e.t).toISOString(),e.type,e.detail])];
+    const csv=rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(",")).join("\n");
+    const box=$("csvbox");
+    const fallback=()=>{ box.hidden=false; box.value=csv; box.focus(); box.select(); $("copymsg").textContent="Select all and copy the text below."; };
+    try{ navigator.clipboard.writeText(csv).then(()=>{ $("copymsg").textContent=`Copied ${S.log.length} events.`; },fallback); }catch(e){ fallback(); }
+  };
+  $("resetsess").onclick=()=>{
+    if(!resetArmed){ resetArmed=true; renderPanel(); setTimeout(()=>{ if(resetArmed){ resetArmed=false; renderPanel(); } },4000); return; }
+    resetArmed=false; S={profile:null,plans:{},log:[],session:{participant:"",start:null},screen:"welcome",tab:"today",selDate:todayKey(),weekOff:0}; draft=null; closeSheet(); save(); render();
+  };
+}
+
+render();
+</script>
+</body>
+</html>
