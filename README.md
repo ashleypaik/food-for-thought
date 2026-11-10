@@ -1,6 +1,6 @@
 # Food for Thought
 
-A working prototype of **Food for Thought**, a personal food-guidance app built for INFO 3160 Milestone 2 usability testing.
+A working prototype of **Food for Thought**, a personal food-guidance app built for INFO 3160.
 
 Participants set their goals, eating pattern and restrictions, then get a day of meals. Each meal comes with a one-sentence reason it fits them, and they can keep it, swap it or say it's not for them.
 
